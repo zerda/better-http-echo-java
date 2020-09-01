@@ -39,16 +39,17 @@ public class EchoController {
                                                   @RequestParam(value = "body", required = false) String body,
                                                   @RequestParam(value = "content", defaultValue = "DEFAULT CONTENT") String content,
                                                   HttpServletRequest request) throws InterruptedException, UnknownHostException {
+        ResponseEntity.BodyBuilder builder = ResponseEntity.status(status);
+        if (status == 301 || status == 302) {
+            builder.header("Location", "https://www.baidu.com/");
+        }
+
         ResponseEntity<?> result;
         if (Strings.isEmpty(body)) {
-            result = ResponseEntity.status(status).body(new Info(request.getMethod(), request.getRequestURI(),
+            result = builder.body(new Info(request.getMethod(), request.getRequestURI(),
                     status, delay, content, InetAddress.getLocalHost().getHostName()));
         } else {
-            result = ResponseEntity.status(status).body(body);
-        }
-        if (result.getStatusCode() == HttpStatus.MOVED_PERMANENTLY
-                || result.getStatusCode() == HttpStatus.FOUND) {
-            result.getHeaders().add("Location", "https://www.baidu.com/");
+            result = builder.body(body);
         }
 
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
