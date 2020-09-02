@@ -1,7 +1,6 @@
 package com.vzerda.better.http.echo.controllers;
 
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,10 +10,14 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class EchoController {
+    ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+
     private static class Info {
         public Info(String method, String url, int status, int delay, String content, String server) {
             this.method = method;
@@ -53,13 +56,9 @@ public class EchoController {
         }
 
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
-        ForkJoinPool.commonPool().submit(() -> {
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException ignored) {
-            }
+        executorService.schedule(() -> {
             output.setResult(result);
-        });
+        }, delay, TimeUnit.MILLISECONDS);
         return output;
     }
 }
